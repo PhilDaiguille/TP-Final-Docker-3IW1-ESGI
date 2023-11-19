@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - data:/var/lib/mysql
+    ports:
+      - ${DB_PORT}:3306
+
+  nginx1:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./build/nginx/nginx1.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - php1
+    links:
+      - php1
+
+  nginx2:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./build/nginx/nginx2.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - php2
+    links:
+      - php2
+
+  php1:
+    build:
+      dockerfile: dockerfile
+    environment:
+      - composer-allow-superuser=1
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - mysql
+    ports:
+      - "9000:9000"
+
+  php2:
+    build:
+      dockerfile: dockerfile
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - mysql
+    ports:
+      - "9001:9000"
+
+volumes:
+  data:
