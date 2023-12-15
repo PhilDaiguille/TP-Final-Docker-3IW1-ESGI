@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql
+    image: mysql:5.7
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USERNAME}
@@ -13,26 +13,34 @@ services:
     ports:
       - ${DB_PORT}:3306
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 80:80
+    depends_on:
+      - mysql
+
   nginx1:
-    image: nginx:alpine
+    image: nginx:alpine3.19
     ports:
       - "8080:80"
     volumes:
       - ./build/nginx/nginx1.conf:/etc/nginx/nginx.conf
     depends_on:
       - php1
-    links:
-      - php1
 
   nginx2:
-    image: nginx:alpine
+    image: nginx:alpine3.19
     ports:
       - "8081:80"
     volumes:
       - ./build/nginx/nginx2.conf:/etc/nginx/nginx.conf
     depends_on:
-      - php2
-    links:
       - php2
 
   php1:
@@ -41,21 +49,35 @@ services:
     environment:
       - composer-allow-superuser=1
     volumes:
-      - ./:/var/www
+      - ./Laravel_Serveur1:/var/www
+      #- ./docker-entrypoint.sh:/var/www/docker-entrypoint.sh
     depends_on:
       - mysql
     ports:
       - "9000:9000"
+    #entrypoint: /var/www/docker-entrypoint.sh
 
   php2:
     build:
       dockerfile: dockerfile
+    environment:
+      - composer-allow-superuser=1
     volumes:
-      - ./:/var/www
+      - ./Laravel_Serveur2:/var/www
+      #- ./docker-entrypoint.sh:/var/www/docker-entrypoint.sh
     depends_on:
       - mysql
     ports:
       - "9001:9000"
+    #entrypoint: /var/www/docker-entrypoint.sh
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+    depends_on:
+      - php1
+      - php2
 
 volumes:
   data:
