@@ -1,7 +1,5 @@
 FROM php:8.3-fpm
 
-RUN apt-get update
-RUN apt-get install -y build-essential
 RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 RUN apt-get install -y nodejs
 
